@@ -54,9 +54,17 @@ class TerminationCondition {
     }
 }
 
-func search(specification: SynthesisSpecification, player: Player, options _: BoSyOptions, synthesize: Bool) -> SafetyAutomaton<CoBüchiAutomaton.CounterState>? {
+// LY added goodenough
+func search(specification: SynthesisSpecification, player: Player, options _: BoSyOptions, synthesize: Bool, goodenough: Bool) -> SafetyAutomaton<CoBüchiAutomaton.CounterState>? {
     do {
-        let automaton = try CoBüchiAutomaton.from(ltl: !specification.ltl)
+        let automaton = try (goodenough ? CoBüchiAutomaton.fromGe(ltl: specification.ltl, outputs: specification.outputs) : CoBüchiAutomaton.from(ltl: !specification.ltl))
+        //if goodenough {
+        //    automaton = try CoBüchiAutomaton.fromGe(ltl: specification.ltl, outputs: specification.outputs));
+        //}else {
+        //    automaton = try CoBüchiAutomaton.from(ltl: !specification.ltl));
+        //}
+        // -- end original
+
         Logger.default().info("automaton contains \(automaton.states.count) states")
 
         // search for minimal number of rejecting state visits
@@ -205,6 +213,8 @@ do {
     let optimizeOption = parser.add(option: "--optimize", kind: Bool.self, usage: "optimize parameter")
     let syntcompOption = parser.add(option: "--syntcomp", kind: Bool.self, usage: "enable mode that is tailored to the rules of the reactive synthesis competition (and useless otherwise)")
     let certifierOption = parser.add(option: "--qbfCertifier", kind: SolverInstance.self)
+    let goodEnoughOption = parser.add(option: "--ge", kind: Bool.self, usage: "synthesize optimal strategies") // LY added
+
 
     let arguments = Array(CommandLine.arguments.dropFirst())
     let parsed = try parser.parse(arguments)
@@ -235,6 +245,7 @@ do {
     let verbose = parsed.get(verbosityOption) ?? false
     let syntcomp = parsed.get(syntcompOption) ?? false
     let optimize = parsed.get(optimizeOption) ?? false
+    let goodenough = parsed.get(goodEnoughOption) ?? false
 
     var options = BoSyOptions()
     options.qbfPreprocessor = .bloqqer
@@ -255,7 +266,7 @@ do {
 
     // search for system strategy
     DispatchQueue(label: "system").async {
-        if let safety = search(specification: specification, player: .system, options: options, synthesize: synthesize) {
+        if let safety = search(specification: specification, player: .system, options: options, synthesize: synthesize, goodenough: goodenough) {
             winner = .system
             safetyAutomaton = safety
             termination.realizabilityDone(success: true)
@@ -266,7 +277,7 @@ do {
 
     // search for environment strategy
     DispatchQueue(label: "environment").async {
-        if let safety = search(specification: specification.dualized, player: .environment, options: options, synthesize: synthesize && !syntcomp) {
+        if let safety = search(specification: specification.dualized, player: .environment, options: options, synthesize: synthesize && !syntcomp, goodenough: goodenough) {
             winner = .environment
             safetyAutomaton = safety
             termination.realizabilityDone(success: true)

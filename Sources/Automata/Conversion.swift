@@ -22,6 +22,21 @@ public enum LTL2AutomatonConverter: String {
     public static let allValues: [LTL2AutomatonConverter] = [.ltl3ba, .spot]
 }
 
+// LY added
+public class LTL2GeAutomatonConverter {
+    public static func convert(ltl: LTL, outputs: [String]) throws -> CoBüchiAutomaton {
+        guard let ltl3baFormatted = ltl.spot else {
+        throw "cannot transform LTL to ltl3ba format"
+        }
+        print("(\(outputs))")
+        var arguments = ["./Tools/ltl2tgba", "-f", "(\(ltl3baFormatted))"]
+        arguments += ["-H", "-B"]
+        let output = try TSCBasic.Process.checkNonZeroExit(arguments: arguments)
+        return try parse(hoaf: output)
+    }
+}
+// end --- LY added
+
 func convertWithLtl3ba(ltl: LTL) throws -> CoBüchiAutomaton {
     guard let ltl3baFormatted = ltl.ltl3ba else {
         throw "cannot transform LTL to ltl3ba format"

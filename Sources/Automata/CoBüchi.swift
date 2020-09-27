@@ -157,4 +157,10 @@ public class CoBüchiAutomaton: Automaton, SafetyAcceptance, CoBüchiAcceptance 
     public static func from(ltl: LTL, using converter: LTL2AutomatonConverter = .spot) throws -> CoBüchiAutomaton {
         try converter.convert(ltl: ltl)
     }
+
+    // LY added
+    public static func fromGe(ltl: LTL, outputs: [String]) throws -> CoBüchiAutomaton {
+        try LTL2GeAutomatonConverter.convert(ltl: ltl, outputs: outputs)
+    }
+    // end --- LY added
 }
