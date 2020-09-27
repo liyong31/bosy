@@ -57,6 +57,7 @@ class TerminationCondition {
 // LY added goodenough
 func search(specification: SynthesisSpecification, player: Player, options _: BoSyOptions, synthesize: Bool, goodenough: Bool) -> SafetyAutomaton<CoBüchiAutomaton.CounterState>? {
     do {
+        print("main: " + "(\(specification.inputs))")
         let automaton = try (goodenough ? CoBüchiAutomaton.fromGe(ltl: specification.ltl, outputs: specification.outputs) : CoBüchiAutomaton.from(ltl: !specification.ltl))
         //if goodenough {
         //    automaton = try CoBüchiAutomaton.fromGe(ltl: specification.ltl, outputs: specification.outputs));
@@ -64,7 +65,7 @@ func search(specification: SynthesisSpecification, player: Player, options _: Bo
         //    automaton = try CoBüchiAutomaton.from(ltl: !specification.ltl));
         //}
         // -- end original
-
+        print("Here we are")
         Logger.default().info("automaton contains \(automaton.states.count) states")
 
         // search for minimal number of rejecting state visits
@@ -274,7 +275,7 @@ do {
             termination.realizabilityDone(success: false)
         }
     }
-
+    /*
     // search for environment strategy
     DispatchQueue(label: "environment").async {
         if let safety = search(specification: specification.dualized, player: .environment, options: options, synthesize: synthesize && !syntcomp, goodenough: goodenough) {
@@ -284,7 +285,7 @@ do {
         } else {
             termination.realizabilityDone(success: false)
         }
-    }
+    }*/
 
     termination.wait()
 
