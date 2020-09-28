@@ -22,15 +22,27 @@ public enum LTL2AutomatonConverter: String {
     public static let allValues: [LTL2AutomatonConverter] = [.ltl3ba, .spot]
 }
 
-// LY added
+// LY added --- build co-Buchi automaton for good-enough synthesis
 public class LTL2GeAutomatonConverter {
     public static func convert(ltl: LTL, outputs: [String]) throws -> CoBüchiAutomaton {
         guard let ltl3baFormatted = ltl.spot else {
         throw "cannot transform LTL to ltl3ba format"
         }
-        print("(\(outputs))")
-        var arguments = ["./Tools/ltl2tgba", "-f", "(\(ltl3baFormatted))"]
-        arguments += ["-H", "-B"]
+        print("LTL2GeAutomatonConverter: " + "(\(outputs))")
+        var outs: String = ""
+        var count: Int = 0
+        for item in outputs {
+            if count == 0 {
+                outs = item
+            }else {
+                outs += "," + item
+            } 
+            count = count + 1
+        }
+        print(outs)
+        print("input formula: (\(ltl))")
+        let arguments = ["./Tools/ltl2geba", "(\(ltl3baFormatted))", "(\(outs))"]
+        //arguments += ["-H", "-B"]
         let output = try TSCBasic.Process.checkNonZeroExit(arguments: arguments)
         return try parse(hoaf: output)
     }
